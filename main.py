@@ -35,12 +35,26 @@ def sentence_problem(text):
     return None
 
 
+def validate_entry(text):
+    """Final gate, run immediately before writing: re-check the entry
+    from scratch so a bad entry can never reach the output file."""
+    if not text or not text.strip():
+        fail("entry must not be empty or whitespace-only")
+    if "\n" in text or "\r" in text:
+        fail("entry must be a single line")
+    if any(ord(c) < 0x20 or ord(c) == 0x7F for c in text):
+        fail("entry must not contain control characters")
+    if not 1 <= len(text) <= 200:
+        fail(f"entry must be 1 to 200 characters, got {len(text)}")
+
+
 def main():
     problem = sentence_problem(ENTRY)
     if problem is not None:
         fail(f"entry is not exactly one sentence ({problem}): {ENTRY!r}")
     if not 1 <= len(ENTRY) <= 200:
         fail(f"entry must be 1-200 characters, got {len(ENTRY)}")
+    validate_entry(ENTRY)
     out_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
     targets = {str(Path(out_dir) / "entry.txt"), "/output/entry.txt"}
     for target in sorted(targets):
